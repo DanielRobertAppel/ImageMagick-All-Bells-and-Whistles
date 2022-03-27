@@ -1,5 +1,7 @@
 #!/bin/bash
 
+NUM_CPUS="4"
+
 OUTPUT_DIR=/usr
 TMP_DIR=/tmp/imagemagick_build_dir
 
@@ -89,6 +91,14 @@ function ensure_exec_bit {
 # libpng
 # brotli
 
+### ImageMagick Configuration args
+function configure_imagemagick {
+    IM_VERSION="7.1.0-27"
+    cd ImageMagick-$IM_VERSION
+    chmod +x configure
+    ./configure --with-modules --with-jemalloc --with-autotrace --with-fftw --with-flif --with-gslib --with-jxl
+}
+
 ### ImageMagick v6 -- necesary to be in-place while building dependency modules before compiling IM7
 function install_imagemagick_6 {
     PKG_NAME="ImageMagick6"
@@ -99,7 +109,7 @@ function install_imagemagick_6 {
     cd $PKG_NAME-$PKG_VERSION
     ensure_exec_bit
     ./configure
-    make -j 4
+    make -j $NUM_CPUS
     make install
     ldconfig
 }
@@ -123,7 +133,7 @@ function install_module_libpng {
     cd $PKG_NAME-$PKG_VERSION
     ensure_exec_bit
     ./configure
-    make -j 4
+    make -j $NUM_CPUS
     make install
     ldconfig
 }
@@ -138,7 +148,7 @@ function install_module_gperf {
     cd $PKG_NAME-$PKG_VERSION
     ensure_exec_bit
     ./configure --prefix=$OUTPUT_DIR
-    make -j 4
+    make -j $NUM_CPUS
     make install
     ldconfig
 }
@@ -154,7 +164,7 @@ function install_module_freetype2 {
     ensure_exec_bit
     ./autogen.sh
     ./configure --prefix=$OUTPUT_DIR
-    make -j 4
+    make -j $NUM_CPUS
     make install
     ldconfig
 }
@@ -173,7 +183,7 @@ function install_module_fontconfig {
     cd $PKG_NAME-$PKG_VERSION
     ensure_exec_bit
     ./autogen.sh
-    make -j 4
+    make -j $NUM_CPUS
     make install
     ldconfig
 }
@@ -191,7 +201,7 @@ function install_module_ming {
     ensure_exec_bit
     ./autogen.sh
     ./configure --prefix=$OUTPUT_DIR
-    make -j 4
+    make -j $NUM_CPUS
     make install
     ldconfig
 }
@@ -233,7 +243,7 @@ function install_module_autotrace {
     ensure_exec_bit
     ./autogen.sh
     ./configure
-    make -j 4
+    make -j $NUM_CPUS
     make install
     ldconfig
 }
@@ -247,7 +257,7 @@ function install_module_bzip2 {
     get_src
     cd $PKG_NAME-$PKG_VERSION
     ensure_exec_bit
-    make -j 4
+    make -j $NUM_CPUS
     make install PREFIX=$OUTPUT_DIR
     ldconfig
 }
@@ -264,7 +274,7 @@ function install_module_lcms {
     ensure_exec_bit
     ./autogen.sh
     ./configure
-    make -j 4
+    make -j $NUM_CPUS
     make install
     ldconfig
 }
@@ -280,7 +290,7 @@ function install_module_jemalloc {
     ensure_exec_bit
     ./autogen.sh
     ./configure
-    make -j 4
+    make -j $NUM_CPUS
     make install
     ldconfig
 }
@@ -296,7 +306,7 @@ function install_module_djvulibre {
     ensure_exec_bit
     ./autogen.sh
     ./configure --disable-desktopfiles
-    make -j 4
+    make -j $NUM_CPUS
     make install
     ldconfig
 }
@@ -311,4 +321,130 @@ function install_module_fftw {
     cd $PKG_NAME-$PKG_VERSION
     ensure_exec_bit
     ./bootstrap.sh
+    ./configure
+    make -j $NUM_CPUS
+    make install
+    ldconfig
+}
+
+### flif
+function install_module_flif {
+    PKG_NAME="flif"
+    PKG_VERSION="0.4"
+    PKG_SRC_REMOTE_LOCATION="https://github.com/FLIF-hub/FLIF/archive/refs/tags/v$PKG_VERSION.tar.gz"
+    PKG_SRC_ARCHIVE_EXT="tar.gz"
+    get_src
+    cd FLIF-$PKG_VERSION
+    ./configure.py
+    make -j $NUM_CPUS
+    make install
+    cp src/library/*.h /usr/local/includes/
+    ldconfig
+}
+
+
+### fpx
+function install_module_fpx {
+    PKG_NAME="fpx"
+    PKG_VERSION="main"
+    PKG_SRC_REMOTE_LOCATION="https://github.com/ImageMagick/libfpx/archive/refs/heads/$PKG_VERSION.zip"
+    PKG_SRC_ARCHIVE_EXT="zip"
+    get_src
+    cd lib$PKG_NAME-$PKG_VERSION
+    ensure_exec_bit
+    ./configure
+    make -j $NUM_CPUS
+    make install
+    ldconfig
+}
+
+### GNU Ghostscript
+function install_module_ghostscript {
+    PKG_NAME="gnu-ghostscript"
+    PKG_VERSION="9.14.1"
+    PKG_SRC_REMOTE_LOCATION="https://www.mirrorservice.org/sites/ftp.gnu.org/gnu/ghostscript/$PKG_NAME-$PKG_VERSION.tar.xz"
+    PKG_SRC_ARCHIVE_EXT="tar.xz"
+    get_src
+    cd $PKG_NAME-$PKG_VERSION
+    ensure_exec_bit
+    ./autogen.sh
+    ./configure
+    make -j $NUM_CPUS
+    make so
+    make install
+    make soinstall
+    ldconfig
+}
+
+### Graphiz
+function install_module_graphiz {
+    PKG_NAME="graphiz"
+    PKG_VERSION="3.0.0"
+    PKG_SRC_REMOTE_LOCATION="https://gitlab.com/api/v4/projects/4207231/packages/generic/$PKG_NAME-releases/$PKG_VERSION/$PKG_NAME-$PKG_VERSION.tar.gz"
+    PKG_SRC_ARCHIVE_EXT="tar.gz"
+    get_src
+    cd $PKG_NAME-$PKG_VERSION
+    ensure_exec_bit
+    ./autogen.sh
+    ./configure
+    make -j $NUM_CPUS
+    make install
+    ldconfig
+}
+
+### heic
+function install_module_heic {
+    PKG_NAME="libheif"
+    PKG_VERSION="main"
+    PKG_SRC_REMOTE_LOCATION="https://github.com/ImageMagick/$PKG_NAME/archive/refs/heads/$PKG_VERSION.zip"
+    PKG_SRC_ARCHIVE_EXT="zip"
+    get_src
+    cd $PKG_NAME-$PKG_VERSION
+    ensure_exec_bit
+    ./configure
+    make -j $NUM_CPUS
+    make install
+    ldconfig
+}
+
+### brotli
+function install_module_brotli {
+    PKG_NAME="brotli"
+    PKG_VERSION="1.0.9"
+    PKG_SRC_REMOTE_LOCATION="https://github.com/google/$PKG_NAME/archive/refs/tags/v$PKG_VERSION.tar.gz"
+    PKG_SRC_ARCHIVE_EXT="tar.gz"
+    get_src
+    cd $PKG_NAME-$PKG_VERSION
+    ensure_exec_bit
+    chmod +x configure-cmake
+    ./configure-cmake
+    make -j $NUM_CPUS
+    make install
+    ldconfig
+}
+
+function install_cmake {
+    PKG_NAME="gnu-cmake"
+    #LEFT OFF HERE.  need cmake v3.12 or higher
+}
+
+### openexr
+function install_module_openexr {
+    # depends on cmake v3.12 or higher
+    install_cmake
+    PKG_NAME="openexr"
+    PKG_VERSION="3.1.4"
+    PKG_SRC_REMOTE_LOCATION="https://github.com/AcademySoftwareFoundation/$PKG_NAME/archive/refs/tags/v$PKG_VERSION.tar.gz"
+    PKG_SRC_ARCHIVE_EXT="tar.gz"
+    get_src
+    cd $PKG_NAME-$PKG_VERSION
+    ensure_exec_bit
+}
+
+### libjxl
+function install_module_libjxl {
+    # depends on openexr
+    install_module_openexr
+    PKG_NAME="libjxl"
+    PKG_VERSION="0.6.1" # <--doesn't work
 }
